@@ -1,0 +1,6 @@
+pyenv
+__pycache__
+.idea
+GlobalEnvironment/__pycache__
+
+
