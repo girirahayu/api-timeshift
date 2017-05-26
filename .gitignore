@@ -1,6 +1,7 @@
+*.pyc
 pyenv
 __pycache__
 .idea
-GlobalEnvironment/__pycache__
+GlobalEnvironment/*.pyc
 
 

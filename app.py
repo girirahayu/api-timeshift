@@ -1,58 +1,40 @@
+import falcon
+from falcon_multipart.middleware import MultipartMiddleware
+from GlobalEnvironment.tokenValidate import getToken
 import json
-from datetime import datetime, timedelta
-from aiohttp import web
-from GlobalEnvironment.emailFunction import GlobalEmail
-import jwt
-
-JWT_SECRET = 'infra@codigo'
-JWT_ALGORITHM = 'HS256'
-JWT_EXP_DELTA_SECONDS = 20
-getEmail = GlobalEmail()
-
-def json_response(body='', **kwargs):
-    kwargs['body'] = json.dumps((body or kwargs['body']), sort_keys=True, indent=2, separators=(',', ': ')).encode('utf-8')
-    kwargs['content_type'] = 'text/json'
-    return web.Response(**kwargs)
-
-async def auth(request):
-    post = await request.post()
-    email   = post['email']
-    password= post['password']
-    if getEmail.emailValidation(email,password) == 1:
-        payload = {
-            'email': email,
-            'password': password
-            #if need using expire time
-            #'exp': datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)
-        }
-        jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
-        return json_response({'token': jwt_token.decode('utf-8')})
-    else:
-        return json_response({'message': 'Wrong credentials'}, status=400)
 
 
-async def index(request):
-    return json_response({'user': str(request.user)})
+class index(object):
+    def on_get(self, req, resp):
+        data = {'status': 'Ok'}
+        resp.set_header('Powered-By', 'Falcon')
+        resp.status = falcon.HTTP_200
+        resp.body = json.dumps(data, sort_keys=True, indent=2, separators=(',', ': '))
 
-async def middleware(app, handler):
-    async def middleware(request):
-        request.user = None
-        token = request.headers.get('authorization', None)
-        if token:
-            try:
-                payload = jwt.decode(token, JWT_SECRET,
-                                     algorithms=[JWT_ALGORITHM])
-            except (jwt.DecodeError, jwt.ExpiredSignatureError):
-                return json_response({'message': 'Token is invalid'}, status=400)
+    def on_post(self,req,resp):
+        try:
+            req.stream.read()
+        except Exception as ex:
+            raise falcon.HTTPError(falcon.HTTP_400,
+                                   'Error',
+                                   ex.message)
+        try:
+            data = {'title':'Notification','Description':'You Cant find something in here'}
+            resp.set_header('Powered-By', 'Falcon')
+            resp.status = falcon.HTTP_200
+            resp.body = json.dumps(data, sort_keys=True, indent=2, separators=(',', ': '))
 
-            request.user = payload['email']
+        except ValueError:
+            raise falcon.HTTPError(falcon.HTTP_400,
+                                   'Malformed JSON',
+                                   'Could not decode the request body. The '
+                                   'JSON was incorrect.')
 
-        return await handler(request)
-    return middleware
+app = falcon.API(middleware=[
+    MultipartMiddleware(),
+    #AuthMiddleware(),
+    #RequireJSON(),
+])
 
-app = web.Application(middlewares=[middleware])
-app.router.add_route('POST','/login', auth)
-app.router.add_route('GET','/', index)
-
-
-
+app.add_route('/', index())
+app.add_route('/getToken', getToken())
