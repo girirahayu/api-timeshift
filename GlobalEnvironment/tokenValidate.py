@@ -1,4 +1,5 @@
 from GlobalEnvironment.emailFunction import GlobalEmail
+from GlobalEnvironment.database import DB
 from Crypto.Cipher import AES
 from datetime import datetime, timedelta
 import base64
@@ -12,11 +13,13 @@ JWT_ALGORITHM = 'HS256'
 JWT_EXP_DELTA_SECONDS = 20
 
 getEmail = GlobalEmail()
+conn = DB()
+
 def encryption(privateInfo):
     # 32 bytes = 256 bits
     # 16 = 128 bits
     # the block size for cipher obj, can be 16 24 or 32. 16 matches 128 bit.
-    BLOCK_SIZE = 16
+    BLOCK_SIZE = 32
     # the character used for padding
     # used to ensure that your value is always a multiple of BLOCK_SIZE
     PADDING = '{'
@@ -47,17 +50,28 @@ def decryption(encryptedString):
 	decoded = DecodeAES(cipher, encryption)
 	return decoded
 
+
 class getToken(object):
     def on_post(self,req, resp):
         username = req.get_param('username')
         password = req.get_param('password')
 
         if getEmail.emailValidation(username, password) == 1:
+
+            fil = "select count(username) as count from members where username =%s"
+            filter = conn.query("select", fil,username)
+            dict = filter[0]
+            if dict.get('count') == 0:
+                query = "insert into members (username,password) values(%s,%s)"
+                conn.query("insert",query,(username,encryption(password)))
+            conn.close_cur()
+
             payload = {
                 'username': username,
                 'password': encryption(password)
                 #'exp': datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)
             }
+
             jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
             data = {"token": jwt_token.decode('utf-8')}
             resp.status = falcon.HTTP_200
