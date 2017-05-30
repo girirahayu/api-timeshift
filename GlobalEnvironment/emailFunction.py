@@ -41,8 +41,8 @@ def strip_tags(html):
 class getEmail(object):
     def on_get(self, req, resp):
         try:
-            EMAIL = "XXXXXXXXX"
-            PASS  = "XXXXXXXXX"
+            EMAIL = "XXXXXXXX"
+            PASS  = "XXXXXXXX"
             SMTP_SERVER = "imap.gmail.com"
             mail = imaplib.IMAP4_SSL(SMTP_SERVER)
             mail.login(EMAIL,PASS)

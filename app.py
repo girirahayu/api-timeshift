@@ -2,6 +2,7 @@ import falcon
 from falcon_multipart.middleware import MultipartMiddleware
 from GlobalEnvironment.tokenValidate import getToken
 from GlobalEnvironment.emailFunction import getEmail
+from GlobalEnvironment.middleware import AuthMiddleware
 import json
 
 class index(object):
@@ -32,10 +33,9 @@ class index(object):
 
 app = falcon.API(middleware=[
     MultipartMiddleware(),
-    #AuthMiddleware(),
-    #RequireJSON(),
+    AuthMiddleware(),
 ])
 
 app.add_route('/', index())
-app.add_route('/getToken', getToken())
-app.add_route('/getEmail', getEmail())
+app.add_route('/getToken','POST', getToken())
+app.add_route('/getEmail','GET', getEmail())
