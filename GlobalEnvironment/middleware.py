@@ -13,8 +13,8 @@ class AuthMiddleware(object):
 
     def process_request(self, req, resp):
         token = req.get_header('Authorization')
-        if token is None:
 
+        if token is None:
             raise falcon.HTTPUnauthorized('Auth token required',
                                           href='mailto:infra@codigo.id')
 
@@ -27,13 +27,22 @@ class AuthMiddleware(object):
             resp.body = json.dumps(data, sort_keys=True, indent=2, separators=(',', ': '))
 
         username = payload['username']
-        password = decryption(payload['password'])
-        query = "select count(username) as count from members where username=%s and password=%s"
-        cek = conn.query("select", query, username,password)
-        dict = cek[0]
-        if dict.get('count') == 1:
-            return True
+        password = payload['password']
+        #get secret from database:
 
+        # getq   = "select secret from members where username=%s"
+        # getq   = conn.query("select", getq,username)
+        # dict   = getq[0]
+        #
+        # secret = dict.get('secret')
+        # depassword = decryption(password,secret)
+
+        query = "select username, password from members where username=%s and password=%s"
+        cek = conn.query("select", query, (username,password))
+        dict = cek[0]
+
+        if dict.get('username') == username and dict.get('password') == password:
+            return True
         else:
             raise falcon.HTTPUnauthorized('Authentication required',
-                                          href='mailto:info@girirahayu.com')
+                                           href='mailto:info@girirahayu.com')

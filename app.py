@@ -37,5 +37,5 @@ app = falcon.API(middleware=[
 ])
 
 app.add_route('/', index())
-app.add_route('/getToken','POST', getToken())
-app.add_route('/getEmail','GET', getEmail())
+app.add_route('/getToken', getToken())
+app.add_route('/getEmail', getEmail())

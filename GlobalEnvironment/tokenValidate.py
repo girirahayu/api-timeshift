@@ -7,6 +7,7 @@ import falcon
 import jwt
 import json
 import os
+import uuid
 
 JWT_SECRET = 'infra@codigo'
 JWT_ALGORITHM = 'HS256'
@@ -32,20 +33,20 @@ def encryption(privateInfo):
     # encrypt with AES, encode with base64
     EncodeAES = lambda c, s: base64.b64encode(c.encrypt(pad(s)))
     # generate a randomized secret key with urandom
-    secret = os.urandom(BLOCK_SIZE)
+    secret = uuid.uuid4().hex
     # creates the cipher obj using the key
     cipher = AES.new(secret)
     # encodes you private info!
     encoded = EncodeAES(cipher, privateInfo)
-    return encoded
+    return encoded , secret
 
-def decryption(encryptedString):
+def decryption(encryptedString,secret):
 	PADDING = '{'
 	DecodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
 	#Key is FROM the printout of 'secret' in encryption
 	#below is the encryption.
 	encryption = encryptedString
-	key = ''
+	key = secret
 	cipher = AES.new(key)
 	decoded = DecodeAES(cipher, encryption)
 	return decoded
@@ -58,20 +59,30 @@ class getToken(object):
 
         if getEmail.emailValidation(username, password) == 1:
 
+
+            enco , secre = encryption(password)
             fil = "select count(username) as count from members where username =%s"
             filter = conn.query("select", fil,username)
             dict = filter[0]
             if dict.get('count') == 0:
-                query = "insert into members (username,password) values(%s,%s)"
-                conn.query("insert",query,(username,encryption(password)))
+                query = "insert into members (username,password,secret) values(%s,%s,%s)"
+                conn.query("insert",query,(username,enco,secre))
+                payload = {
+                    'username': username,
+                    'password': enco
+                    #'exp': datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)
+                }
+            else:
+                query = "select password from members where username=%s"
+                dataq = conn.query("select", query,username)
+                dict = dataq[0]
+                payload = {
+                    'username': username,
+                    'password': dict.get('password')
+                    #'exp': datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)
+                }
+
             conn.close_cur()
-
-            payload = {
-                'username': username,
-                'password': encryption(password)
-                #'exp': datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)
-            }
-
             jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
             data = {"token": jwt_token.decode('utf-8')}
             resp.status = falcon.HTTP_200
