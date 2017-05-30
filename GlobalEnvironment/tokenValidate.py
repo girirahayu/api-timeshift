@@ -1,5 +1,5 @@
 from GlobalEnvironment.emailFunction import GlobalEmail
-from GlobalEnvironment.database import DB
+from GlobalEnvironment.db import DB
 from Crypto.Cipher import AES
 from datetime import datetime, timedelta
 import base64

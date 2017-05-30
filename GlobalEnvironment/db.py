@@ -1,4 +1,4 @@
-import pymysql.cursors
+import pymysql
 
 # # Connect to the database
 class DB(object):
@@ -30,12 +30,18 @@ class DB(object):
 
     def query(self,type,query,params):
         if type == "select":
-            if params == 0:
-                self._db_cur.execute(query)
-            else:
-                self._db_cur.execute(query, params)
-            return self._db_cur.fetchall()
+            try:
+                if params == 0:
+                    self._db_cur.execute(query)
+                else:
+                    self._db_cur.execute(query, params)
+                return self._db_cur.fetchall()
+            except pymysql.MySQLError as e:
+                print ('Got error {!r}, errno is {}'.format(e, e.args[0]))
 
         if type == "insert" or type == "update":
-            self._db_cur.execute(query,params)
-            return self._db_connection.commit()
+            try:
+                self._db_cur.execute(query,params)
+                return self._db_connection.commit()
+            except pymysql.MySQLError as e:
+                print ('Got error {!r}, errno is {}'.format(e, e.args[0]))
