@@ -59,7 +59,6 @@ class getToken(object):
 
         if getEmail.emailValidation(username, password) == 1:
 
-
             enco , secre = encryption(password)
             fil = "select count(username) as count from members where username =%s"
             filter = conn.query("select", fil,username)

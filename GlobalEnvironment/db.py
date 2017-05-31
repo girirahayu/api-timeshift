@@ -21,7 +21,7 @@ class DB(object):
         return self._db_connection.close()
 
     def select(self, query, params):
-        if not params:
+        if params is None:
             self._db_cur.execute(query)
         else:
             self._db_cur.execute(query,params)

@@ -10,7 +10,6 @@ JWT_EXP_DELTA_SECONDS = 20
 
 conn = DB()
 class AuthMiddleware(object):
-
     def process_request(self, req, resp):
         token = req.get_header('Authorization')
 
@@ -28,8 +27,8 @@ class AuthMiddleware(object):
 
         username = payload['username']
         password = payload['password']
-        #get secret from database:
 
+        #get secret from database for decript password:
         # getq   = "select secret from members where username=%s"
         # getq   = conn.query("select", getq,username)
         # dict   = getq[0]

@@ -38,6 +38,7 @@ def strip_tags(html):
     s.feed(html)
     return s.get_data()
 
+
 class getEmail(object):
     def on_get(self, req, resp):
         try:
@@ -59,33 +60,53 @@ class getEmail(object):
             type, data = mail.fetch(latest_email_id, '(RFC822)')
             raw_email = data[0][1]
             msg = email.message_from_string(raw_email)
-
+            decode = email.header.decode_header(msg['Subject'])[0]
+            subject = unicode(decode[0])[:5]
             if msg.is_multipart():
                 for payload in msg.get_payload():
                     body = payload.get_payload()
             else:
-                    body = msg.get_payload()
+                body = msg.get_payload()
 
-            callback = {"_dataemail":{
-                            "subject": msg['subject'],
-                            "from": email.utils.parseaddr(msg['From'])[1],
-                            "cc": msg['cc'].replace('\r', '').replace('\n', '').replace('\t', ''),
-                            "received": msg['date'],
-                            "body": body.replace('\r','').replace('\n','')
+            if subject == '[REQ]' or subject == '[Req]' or subject == '[req]':
+                if msg['cc'] is None:
+                    cc = 0
+                else:
+                    cc = msg['cc'].replace('\r', '').replace('\n', '').replace('\t', '')
+
+                cekq = "select em_subject from email_task order by timestamp DESC limit 1"
+                dataq = conn.select(cekq,None)
+                dict = dataq[0]
+
+                if dict.get('em_subject') != msg['subject']:
+                    query = "insert into email_task (em_subject,em_from,em_cc,received,em_body) VALUES (%s,%s,%s,%s,%s)"
+                    conn.query("insert", query, (msg['subject'],
+                                                 email.utils.parseaddr(msg['From'])[1],
+                                                 cc,
+                                                 msg['date'],body.replace('\r', '').replace('\n', '')))
+
+                    callback = {"_dataemail": {
+                        "subject": msg['subject'],
+                        "from": email.utils.parseaddr(msg['From'])[1],
+                        "cc": cc,
+                        "received": msg['date'],
+                        "body": body.replace('\r', '').replace('\n', '')
                     }
-            }
+                    }
 
-            query = "insert into email_task (em_subject,em_from,em_cc,received,em_body) VALUES (%s,%s,%s,%s,%s)"
-            print query
-            conn.query("insert", query, (msg['subject'],
-                                         email.utils.parseaddr(msg['From'])[1],
-                                         msg['cc'].replace('\r', '').replace('\n', '').replace('\t', ''),
-                                         msg['date'],body.replace('\r', '').replace('\n', '')))
-
-            resp.set_header('Author-By', '@newbiemember')
-            resp.status = falcon.HTTP_200
-            resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
-
+                    resp.set_header('Author-By', '@newbiemember')
+                    resp.status = falcon.HTTP_200
+                    resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+                else:
+                    callback = {"_dataemail": "Can't find new request to Infra", "status": False}
+                    resp.set_header('Author-By', '@newbiemember')
+                    resp.status = falcon.HTTP_200
+                    resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+            else:
+                callback = {"_dataemail": "Can't find new request to infra", "status": False}
+                resp.set_header('Author-By', '@newbiemember')
+                resp.status = falcon.HTTP_200
+                resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
 
         except Exception, e:
             return str(e)
