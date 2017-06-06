@@ -10,40 +10,30 @@ JWT_SECRET = 'infra@codigo'
 JWT_ALGORITHM = 'HS256'
 JWT_EXP_DELTA_SECONDS = 20
 
-
 def sendmail(efrom,to,cc,subject,body,password):
-    fromaddr = efrom
-    cc = cc.replace('[','').replace(']','').replace("'","")
-    cc = cc + " ,infra@codigo.id"
+    cc = cc.replace('[','').replace(']','').replace("'", "")
+    cc = cc + ',infra@codigo.id'
+    toaddr = ', '.join([to])
     msg = MIMEMultipart()
     msg['From'] = efrom
-    msg['To'] = to
+    msg['To'] = toaddr
+    msg['Cc'] = cc
     msg['Subject'] = subject
-    to = [to]
-
-    if cc:
-        if type(cc) in [str, unicode]:
-            msg.add_header('Cc', cc)
-            cc = [cc]
-        else:
-            cc = ', '.join(cc)
-            msg.add_header('Cc', cc)
-        to += cc
-
+    toaddrs = [toaddr]+cc.split(',')
     msg.attach(MIMEText(body, 'plain'))
-
     try :
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.ehlo()
         server.starttls()
         server.ehlo()
-        server.login(fromaddr, password)
+        server.login(efrom, password)
         text = msg.as_string()
-        server.sendmail(fromaddr, to, text)
+        server.sendmail(efrom, toaddrs, text)
+        server.set_debuglevel(True)
         server.quit()
         return 200
-    except smtplib.SMTPException as e:
-        return e
+    except Exception as e:
+        print e
 
 def encryption(privateInfo):
     # 32 bytes = 256 bits

@@ -140,7 +140,8 @@ class sendEmailResponse(object):
 
         secret = dict.get('secret')
         depassword = decryption(password,secret)
-        if sendmail(username,toaddr,cc,subject,body_email,depassword) == 200:
+        email = sendmail(username,toaddr,cc,subject,body_email,depassword)
+        if email == 200:
             callback = {"sendmail": True }
             resp.set_header('Author-By', '@newbiemember')
             resp.status = falcon.HTTP_200
