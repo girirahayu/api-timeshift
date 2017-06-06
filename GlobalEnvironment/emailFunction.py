@@ -1,12 +1,13 @@
 import imaplib
+import smtplib
 import email
 import falcon
 import json
 from GlobalEnvironment.db import DB
 from HTMLParser import HTMLParser
+from GlobalEnvironment.GlobalFunctions import decryption, jwtDecode, sendmail
 
 conn = DB()
-
 
 class GlobalEmail(object):
     def emailValidation(self,username,password):
@@ -37,7 +38,6 @@ def strip_tags(html):
     s = MLStripper()
     s.feed(html)
     return s.get_data()
-
 
 class getEmail(object):
     def on_get(self, req, resp):
@@ -72,7 +72,10 @@ class getEmail(object):
                 if msg['cc'] is None:
                     cc = 0
                 else:
-                    cc = msg['cc'].replace('\r', '').replace('\n', '').replace('\t', '')
+                    em_cc = email.utils.getaddresses([msg['cc']])
+                    cc = []
+                    for mail in em_cc:
+                        cc.append(mail[1])
 
                 cekq = "select em_subject from email_task order by timestamp DESC limit 1"
                 dataq = conn.select(cekq,None)
@@ -82,8 +85,9 @@ class getEmail(object):
                     query = "insert into email_task (em_subject,em_from,em_cc,received,em_body) VALUES (%s,%s,%s,%s,%s)"
                     conn.query("insert", query, (msg['subject'],
                                                  email.utils.parseaddr(msg['From'])[1],
-                                                 cc,
-                                                 msg['date'],body.replace('\r', '').replace('\n', '')))
+                                                 str(cc),
+                                                 msg['date'],
+                                                 body.replace('\r', '').replace('\n', '')))
 
                     callback = {"_dataemail": {
                         "subject": msg['subject'],
@@ -110,3 +114,40 @@ class getEmail(object):
 
         except Exception, e:
             return str(e)
+
+class sendEmailResponse(object):
+    def on_post(self, req, resp):
+        id_email = req.get_param('id_email')
+        body_email= req.get_param('body_email')
+        getQ = "select * from email_task where id_email=%s"
+        dataQ= conn.query("select",getQ,id_email)
+        dict = dataQ[0]
+
+        if dict.get('em_cc') == 0:
+            cc = None
+        else:
+            cc = dict.get('em_cc')
+
+        toaddr = dict.get('em_from')
+        token = req.get_header('Authorization')
+        username,password = jwtDecode(token)
+        subject = "Re: "+ dict.get('em_subject')
+
+        #get secret from database for decript password:
+        getq   = "select secret from members where username=%s"
+        getq   = conn.query("select", getq,username)
+        dict   = getq[0]
+
+        secret = dict.get('secret')
+        depassword = decryption(password,secret)
+        if sendmail(username,toaddr,cc,subject,body_email,depassword) == 200:
+            callback = {"sendmail": True }
+            resp.set_header('Author-By', '@newbiemember')
+            resp.status = falcon.HTTP_200
+            resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+        else:
+            callback = {"sendmail": False}
+            resp.set_header('Author-By', '@newbiemember')
+            resp.status = falcon.HTTP_200
+            resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+

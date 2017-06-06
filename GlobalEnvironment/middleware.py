@@ -1,5 +1,4 @@
 import falcon
-from GlobalEnvironment.tokenValidate import encryption, decryption
 from GlobalEnvironment.db import DB
 import jwt
 import json
@@ -27,14 +26,6 @@ class AuthMiddleware(object):
 
         username = payload['username']
         password = payload['password']
-
-        #get secret from database for decript password:
-        # getq   = "select secret from members where username=%s"
-        # getq   = conn.query("select", getq,username)
-        # dict   = getq[0]
-        #
-        # secret = dict.get('secret')
-        # depassword = decryption(password,secret)
 
         query = "select username, password from members where username=%s and password=%s"
         cek = conn.query("select", query, (username,password))
