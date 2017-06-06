@@ -13,8 +13,8 @@ JWT_EXP_DELTA_SECONDS = 20
 
 def sendmail(efrom,to,cc,subject,body,password):
     fromaddr = efrom
-    cc = cc.replace('[','').replace(']','')
-    cc = cc + ", 'infra@codigo.id'"
+    cc = cc.replace('[','').replace(']','').replace("'","")
+    cc = cc + " ,infra@codigo.id"
     msg = MIMEMultipart()
     msg['From'] = efrom
     msg['To'] = to
@@ -43,7 +43,6 @@ def sendmail(efrom,to,cc,subject,body,password):
         server.quit()
         return 200
     except smtplib.SMTPException as e:
-        print e
         return e
 
 def encryption(privateInfo):
