@@ -29,7 +29,7 @@ def sendmail(efrom,to,cc,subject,body,password):
         server.login(efrom, password)
         text = msg.as_string()
         server.sendmail(efrom, toaddrs, text)
-        server.set_debuglevel(True)
+        #server.set_debuglevel(True)
         server.quit()
         return 200
     except Exception as e:

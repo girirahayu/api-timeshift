@@ -1,12 +1,11 @@
 import imaplib
-import smtplib
 import email
 import falcon
 import json
 from GlobalEnvironment.db import DB
 from HTMLParser import HTMLParser
 from GlobalEnvironment.GlobalFunctions import decryption, jwtDecode, sendmail
-
+import time
 conn = DB()
 
 class GlobalEmail(object):
@@ -21,7 +20,6 @@ class GlobalEmail(object):
                 return False
         except:
             pass
-
 
 class MLStripper(HTMLParser):
     def __init__(self):
@@ -77,12 +75,12 @@ class getEmail(object):
                     for mail in em_cc:
                         cc.append(mail[1])
 
-                cekq = "select em_subject from email_task order by timestamp DESC limit 1"
+                cekq = "select em_subject from email_receive order by timestamp DESC limit 1"
                 dataq = conn.select(cekq,None)
                 dict = dataq[0]
 
                 if dict.get('em_subject') != msg['subject']:
-                    query = "insert into email_task (em_subject,em_from,em_cc,received,em_body) VALUES (%s,%s,%s,%s,%s)"
+                    query = "insert into email_receive (em_subject,em_from,em_cc,received,em_body) VALUES (%s,%s,%s,%s,%s)"
                     conn.query("insert", query, (msg['subject'],
                                                  email.utils.parseaddr(msg['From'])[1],
                                                  str(cc),
@@ -119,7 +117,8 @@ class sendEmailResponse(object):
     def on_post(self, req, resp):
         id_email = req.get_param('id_email')
         body_email= req.get_param('body_email')
-        getQ = "select * from email_task where id_email=%s"
+        status = int(req.get_param('status'))
+        getQ = "select * from email_receive where id_email=%s"
         dataQ= conn.query("select",getQ,id_email)
         dict = dataQ[0]
 
@@ -140,12 +139,24 @@ class sendEmailResponse(object):
 
         secret = dict.get('secret')
         depassword = decryption(password,secret)
-        email = sendmail(username,toaddr,cc,subject,body_email,depassword)
-        if email == 200:
-            callback = {"sendmail": True }
-            resp.set_header('Author-By', '@newbiemember')
-            resp.status = falcon.HTTP_200
-            resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+        sendmail = 200
+        if sendmail(username,toaddr,cc,subject,body_email,depassword) == 200:
+        #if sendmail == 200:
+            if status == 0:
+                qin = "insert into email_tasklist (username_member,id_email,response) VALUES (%s,%s,now())"
+                conn.query("insert", qin, (username,id_email))
+
+                callback = {"sendmail": True, "response-by": username }
+                resp.set_header('Author-By', '@newbiemember')
+                resp.status = falcon.HTTP_200
+                resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+            else:
+                qup = "update email_tasklist set status=%s, selesai=now() where id_email=%s"
+                conn.query("update", qup, (1, id_email))
+                callback = {"sendmail": True, "finish-by": username}
+                resp.set_header('Author-By', '@newbiemember')
+                resp.status = falcon.HTTP_200
+                resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
         else:
             callback = {"sendmail": False}
             resp.set_header('Author-By', '@newbiemember')
