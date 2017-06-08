@@ -5,7 +5,6 @@ import json
 from GlobalEnvironment.db import DB
 from HTMLParser import HTMLParser
 from GlobalEnvironment.GlobalFunctions import decryption, jwtDecode, sendmail
-import time
 conn = DB()
 
 class GlobalEmail(object):
@@ -121,7 +120,6 @@ class sendEmailResponse(object):
         getQ = "select * from email_receive where id_email=%s"
         dataQ= conn.query("select",getQ,id_email)
         dict = dataQ[0]
-
         if dict.get('em_cc') == 0:
             cc = None
         else:
@@ -139,9 +137,7 @@ class sendEmailResponse(object):
 
         secret = dict.get('secret')
         depassword = decryption(password,secret)
-        sendmail = 200
         if sendmail(username,toaddr,cc,subject,body_email,depassword) == 200:
-        #if sendmail == 200:
             if status == 0:
                 qin = "insert into email_tasklist (username_member,id_email,response) VALUES (%s,%s,now())"
                 conn.query("insert", qin, (username,id_email))

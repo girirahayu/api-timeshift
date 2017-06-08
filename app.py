@@ -3,6 +3,7 @@ from falcon_multipart.middleware import MultipartMiddleware
 from GlobalEnvironment.tokenValidate import getToken
 from GlobalEnvironment.emailFunction import getEmail, sendEmailResponse
 from GlobalEnvironment.middleware import AuthMiddleware
+from GlobalEnvironment.troubleTaskList import troubleTask
 import json
 
 class index(object):
@@ -40,3 +41,4 @@ app.add_route('/', index())
 app.add_route('/getToken', getToken())
 app.add_route('/getEmail', getEmail())
 app.add_route('/sendEmailResponse', sendEmailResponse())
+app.add_route('/troubleTask', troubleTask())

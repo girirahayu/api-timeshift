@@ -44,4 +44,6 @@ class DB(object):
                 self._db_cur.execute(query,params)
                 return self._db_connection.commit()
             except pymysql.MySQLError as e:
-                print ('Got error {!r}, errno is {}'.format(e, e.args[0]))
+                error =  ('Got error {!r}, errno is {}'.format(e, e.args[0]))
+                print error
+                return error

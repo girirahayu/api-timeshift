@@ -3,5 +3,6 @@ pyenv
 __pycache__
 .idea
 GlobalEnvironment/*.pyc
+test.py
 
 
