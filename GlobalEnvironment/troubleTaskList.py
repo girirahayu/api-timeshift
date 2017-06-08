@@ -22,14 +22,14 @@ class troubleTask(object):
             if status is None or status == 1:
                 query = "insert into trouble_tasklist(subject, message) VALUES (%s,%s)"
                 conn.query("insert", query, (subject, message))
-                callback = {"inserted": True, "message": message}
+                callback = {"inserted": True, "host": subject,"message": message}
                 resp.set_header('Author-By', '@newbiemember')
                 resp.status = falcon.HTTP_200
                 resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
             if status == 0:
                 query = "update trouble_tasklist set message=%s where subject=%s"
                 conn.query("update", query, (message, subject))
-                callback = {"update": True, "message": message}
+                callback = {"update": True, "host": subject, "message": message}
                 resp.set_header('Author-By', '@newbiemember')
                 resp.status = falcon.HTTP_200
                 resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))

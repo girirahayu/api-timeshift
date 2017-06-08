@@ -120,7 +120,8 @@ class sendEmailResponse(object):
         getQ = "select * from email_receive where id_email=%s"
         dataQ= conn.query("select",getQ,id_email)
         dict = dataQ[0]
-        if dict.get('em_cc') == 0:
+
+        if dict.get('em_cc') == str(0):
             cc = None
         else:
             cc = dict.get('em_cc')
