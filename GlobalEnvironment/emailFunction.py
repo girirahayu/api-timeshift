@@ -4,6 +4,7 @@ import falcon
 import json
 from GlobalEnvironment.db import DB
 from HTMLParser import HTMLParser
+import datetime
 from GlobalEnvironment.GlobalFunctions import decryption, jwtDecode, sendmail
 conn = DB()
 
@@ -47,16 +48,13 @@ class getEmail(object):
 
             mail.list()
             mail.select('inbox')
-
-            type, data = mail.search(None, 'ALL')
-            mail_ids = data[0]
-
-            id_list = mail_ids.split()
-            latest_email_id = int(id_list[-1])
-
-            type, data = mail.fetch(latest_email_id, '(RFC822)')
+            date = (datetime.date.today() - datetime.timedelta(1)).strftime("%d-%b-%Y")
+            result, data = mail.uid('search', None, '(SENTSINCE {date} HEADER Subject "[REQ]")'.format(date=date))  # search and return uids instead
+            latest_email_uid = data[0].split()[-1]
+            result, data = mail.uid('fetch', latest_email_uid, '(RFC822)')
             raw_email = data[0][1]
             msg = email.message_from_string(raw_email)
+
             decode = email.header.decode_header(msg['Subject'])[0]
             subject = unicode(decode[0])[:5]
             if msg.is_multipart():
