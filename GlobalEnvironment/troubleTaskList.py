@@ -1,5 +1,6 @@
 import falcon
 from GlobalEnvironment.db import DB
+from GlobalEnvironment.GlobalFunctions import jwtDecode
 import json
 conn = DB()
 
@@ -38,3 +39,19 @@ class troubleTask(object):
             resp.set_header('Author-By', '@newbiemember')
             resp.status = falcon.HTTP_200
             resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+
+class updateTroubleTask(object):
+    def on_post(self,req,resp):
+        id = req.get_param('id')
+        note = req.get_param('note')
+        token = req.get_header('Authorization')
+        username,password = jwtDecode(token)
+
+        query = "update trouble_tasklist set status=1, date_released=now(), username=%s, note=%s where id_trouble=%s and status=0"
+        conn.query("update", query,(username,note,id))
+
+        callback = {"status": "solved", "by": username, "note": note}
+        resp.set_header('Author-By', '@newbiemember')
+        resp.status = falcon.HTTP_200
+        resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+

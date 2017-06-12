@@ -146,7 +146,7 @@ class sendEmailResponse(object):
                 resp.status = falcon.HTTP_200
                 resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
             else:
-                qup = "update email_tasklist set status=%s, selesai=now() where id_email=%s"
+                qup = "update email_tasklist set status=%s, selesai=now() where id_email=%s and status=0"
                 conn.query("update", qup, (1, id_email))
                 callback = {"sendmail": True, "finish-by": username}
                 resp.set_header('Author-By', '@newbiemember')
