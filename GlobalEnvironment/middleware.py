@@ -30,8 +30,7 @@ class AuthMiddleware(object):
         query = "select count(id_member) as count, username, password from members where username=%s and password=%s"
         cek = conn.query("select", query, (username,password))
         dict = cek[0]
-
-        if dict.get('count') == str(1):
+        if dict.get('count') == 1:
             return True
         else:
             description = ('The provided auth token is not valid. '
