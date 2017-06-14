@@ -27,12 +27,15 @@ class AuthMiddleware(object):
         username = payload['username']
         password = payload['password']
 
-        query = "select username, password from members where username=%s and password=%s"
+        query = "select count(id_member) as count, username, password from members where username=%s and password=%s"
         cek = conn.query("select", query, (username,password))
         dict = cek[0]
 
-        if dict.get('username') == username and dict.get('password') == password:
+        if dict.get('count') == str(1):
             return True
         else:
+            description = ('The provided auth token is not valid. '
+                           'Please request a new token and try again.')
             raise falcon.HTTPUnauthorized('Authentication required',
-                                           href='mailto:info@girirahayu.com')
+                                          description)
+
