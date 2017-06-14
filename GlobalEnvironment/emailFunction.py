@@ -21,21 +21,10 @@ class GlobalEmail(object):
         except:
             pass
 
-class MLStripper(HTMLParser):
-    def __init__(self):
-        self.reset()
-        self.fed = []
-
-    def handle_data(self, d):
-        self.fed.append(d)
-
-    def get_data(self):
-        return ''.join(self.fed)
-
-def strip_tags(html):
-    s = MLStripper()
-    s.feed(html)
-    return s.get_data()
+def datetime_handler(x):
+    if isinstance(x, datetime.datetime):
+        return x.isoformat()
+    raise TypeError("Unknown type")
 
 class getEmail(object):
     def on_get(self, req, resp):
@@ -106,15 +95,34 @@ class getEmail(object):
                 resp.set_header('Author-By', '@newbiemember')
                 resp.status = falcon.HTTP_200
                 resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
-
+            conn.close_cur()
         except Exception, e:
             return str(e)
+
+
+class getEmaildashboard(object):
+    def on_post(self, req, resp):
+        lim = req.get_param('limit')
+        if lim is None:
+            data = {'_section': conn.query("select", "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email", None)}
+        else:
+            data = {'_section': conn.query("select", "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email limit "+lim, None)}
+
+        resp.set_header('Author-By', '@newbiemember')
+        resp.status = falcon.HTTP_200
+        resp.body = json.dumps(data, default=datetime_handler)
+        conn.close_cur()
 
 class sendEmailResponse(object):
     def on_post(self, req, resp):
         id_email = req.get_param('id_email')
         body_email= req.get_param('body_email')
-        status = int(req.get_param('status'))
+        keynote= req.get_param('keynote')
+        if req.get_param('status') == None:
+            status = 0
+        else:
+            status = int(req.get_param('status'))
+
         getQ = "select * from email_receive where id_email=%s"
         dataQ= conn.query("select",getQ,id_email)
         dict = dataQ[0]
@@ -130,7 +138,7 @@ class sendEmailResponse(object):
         subject = "Re: "+ dict.get('em_subject')
 
         #get secret from database for decript password:
-        getq   = "select secret from members where username=%s"
+        getq   = "select id_member, secret from members where username=%s"
         getq   = conn.query("select", getq,username)
         dict   = getq[0]
 
@@ -138,17 +146,16 @@ class sendEmailResponse(object):
         depassword = decryption(password,secret)
         if sendmail(username,toaddr,cc,subject,body_email,depassword) == 200:
             if status == 0:
-                qin = "insert into email_tasklist (username_member,id_email,response) VALUES (%s,%s,now())"
-                conn.query("insert", qin, (username,id_email))
-
-                callback = {"sendmail": True, "response-by": username }
+                qin = "insert into email_tasklist (id_member,id_email,response) VALUES (%s,%s,now())"
+                conn.query("insert", qin, (dict.get('id_member'),id_email))
+                callback = {"sendmail": True, "id_member": dict.get('id_member'), "response-by": username, "status": 0, "body_email":body_email }
                 resp.set_header('Author-By', '@newbiemember')
                 resp.status = falcon.HTTP_200
                 resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
             else:
-                qup = "update email_tasklist set status=%s, selesai=now() where id_email=%s and status=0"
-                conn.query("update", qup, (1, id_email))
-                callback = {"sendmail": True, "finish-by": username}
+                qup = "update email_tasklist set status=%s, keynote=%s, selesai=now() where id_email=%s and status=0"
+                conn.query("update", qup, (1, keynote, id_email))
+                callback = {"sendmail": True,'id_member': dict.get('id_member'), "finish-by": username, "status": 1, "body_email":body_email, "keynote": keynote}
                 resp.set_header('Author-By', '@newbiemember')
                 resp.status = falcon.HTTP_200
                 resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
@@ -158,3 +165,4 @@ class sendEmailResponse(object):
             resp.status = falcon.HTTP_200
             resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
 
+        conn.close_cur()

@@ -34,14 +34,21 @@ class getToken(object):
                     #'exp': datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)
                 }
             else:
-                query = "select password from members where username=%s"
-                dataq = conn.query("select", query,username)
-                dict = dataq[0]
+                query = "update members set username=%s, password=%s, secret=%s where username=%s"
+                conn.query("update", query, (username, enco,secre,username))
                 payload = {
                     'username': username,
-                    'password': dict.get('password')
-                    #'exp': datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)
+                    'password': enco
+                    # 'exp': datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)
                 }
+                # query = "select password from members where username=%s"
+                # dataq = conn.query("select", query,username)
+                # dict = dataq[0]
+                # payload = {
+                #     'username': username,
+                #     'password': dict.get('password')
+                #     #'exp': datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)
+                # }
 
             conn.close_cur()
             jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
@@ -52,3 +59,5 @@ class getToken(object):
             data = {"status": "Can't validate Email address!"}
             resp.status = falcon.HTTP_401
             resp.body = json.dumps(data, sort_keys=True, indent=2, separators=(',', ': '))
+
+        conn.close_cur()

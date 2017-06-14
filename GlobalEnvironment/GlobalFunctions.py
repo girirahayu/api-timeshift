@@ -11,8 +11,11 @@ JWT_ALGORITHM = 'HS256'
 JWT_EXP_DELTA_SECONDS = 20
 
 def sendmail(efrom,to,cc,subject,body,password):
-    cc = cc.replace('[','').replace(']','').replace("'", "")
-    cc = cc + ',infra@codigo.id'
+    if cc is None:
+        cc = 'infra@codigo.id'
+    else:
+        cc = cc.replace('[','').replace(']','').replace("'", "")
+        cc = cc + ',infra@codigo.id'
     toaddr = ', '.join([to])
     msg = MIMEMultipart()
     msg['From'] = efrom

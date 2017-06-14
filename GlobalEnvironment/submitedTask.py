@@ -17,6 +17,7 @@ class submitTask(object):
             resp.set_header('Author-By', '@newbiemember')
             resp.status = falcon.HTTP_200
             resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+        conn.close_cur()
 
 class updateTaskStatus(object):
     def on_post(self,req,resp):
@@ -45,3 +46,4 @@ class updateTaskStatus(object):
             resp.status = falcon.HTTP_200
             resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
 
+        conn.close_cur()
