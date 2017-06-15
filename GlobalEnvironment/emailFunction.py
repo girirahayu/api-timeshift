@@ -3,7 +3,6 @@ import email
 import falcon
 import json
 from GlobalEnvironment.db import DB
-from HTMLParser import HTMLParser
 import datetime
 from GlobalEnvironment.GlobalFunctions import decryption, jwtDecode, sendmail
 conn = DB()

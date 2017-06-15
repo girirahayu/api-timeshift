@@ -23,7 +23,7 @@ class getToken(object):
 
             enco , secre = encryption(password)
             fil = "select count(username) as count from members where username =%s"
-            filter = conn.query("select", fil,username)
+            filter = conn.query("select", fil,(username))
             dict = filter[0]
             if dict.get('count') == 0:
                 query = "insert into members (username,password,secret) values(%s,%s,%s)"
