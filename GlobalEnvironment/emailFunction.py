@@ -7,6 +7,12 @@ import datetime
 from GlobalEnvironment.GlobalFunctions import decryption, jwtDecode, sendmail
 conn = DB()
 
+
+def datetime_handler(x):
+    if isinstance(x, datetime.datetime):
+        return x.isoformat()
+    raise TypeError("Unknown type")
+
 class GlobalEmail(object):
     def emailValidation(self,username,password):
         try:
@@ -19,11 +25,6 @@ class GlobalEmail(object):
                 return False
         except:
             pass
-
-def datetime_handler(x):
-    if isinstance(x, datetime.datetime):
-        return x.isoformat()
-    raise TypeError("Unknown type")
 
 class getEmail(object):
     def on_get(self, req, resp):

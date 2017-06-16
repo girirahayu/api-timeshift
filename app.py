@@ -35,7 +35,7 @@ class index(object):
 
 app = falcon.API(middleware=[
     MultipartMiddleware(),
-    AuthMiddleware(),
+    #AuthMiddleware(),
 ])
 
 app.add_route('/', index())
