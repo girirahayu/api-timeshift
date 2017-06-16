@@ -85,6 +85,7 @@ class getEmail(object):
                     resp.set_header('Author-By', '@newbiemember')
                     resp.status = falcon.HTTP_200
                     resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+                    conn.close()
                 else:
                     callback = {"_dataemail": "Can't find new request to Infra", "status": False}
                     resp.set_header('Author-By', '@newbiemember')
@@ -95,7 +96,6 @@ class getEmail(object):
                 resp.set_header('Author-By', '@newbiemember')
                 resp.status = falcon.HTTP_200
                 resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
-            conn.close_cur()
         except Exception, e:
             return str(e)
 
@@ -111,7 +111,6 @@ class getEmaildashboard(object):
         resp.set_header('Author-By', '@newbiemember')
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(data, default=datetime_handler)
-        conn.close_cur()
 
 class sendEmailResponse(object):
     def on_post(self, req, resp):
@@ -164,5 +163,4 @@ class sendEmailResponse(object):
             resp.set_header('Author-By', '@newbiemember')
             resp.status = falcon.HTTP_200
             resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
-
-        conn.close_cur()
+        conn.close()

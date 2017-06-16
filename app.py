@@ -1,6 +1,6 @@
 import falcon
 from falcon_multipart.middleware import MultipartMiddleware
-from GlobalEnvironment.tokenValidate import getToken
+from GlobalEnvironment.tokenValidate import getToken, disableToken
 from GlobalEnvironment.emailFunction import getEmail, sendEmailResponse, getEmaildashboard
 from GlobalEnvironment.middleware import AuthMiddleware
 from GlobalEnvironment.troubleTaskList import troubleTask, updateTroubleTask
@@ -35,11 +35,12 @@ class index(object):
 
 app = falcon.API(middleware=[
     MultipartMiddleware(),
-    #AuthMiddleware(),
+    AuthMiddleware(),
 ])
 
 app.add_route('/', index())
 app.add_route('/getToken', getToken())
+app.add_route('/disableToken', disableToken())
 app.add_route('/getEmail', getEmail())
 app.add_route('/getTaskEmailDashboard', getEmaildashboard())
 app.add_route('/sendEmailResponse', sendEmailResponse())
