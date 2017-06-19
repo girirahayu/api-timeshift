@@ -96,6 +96,9 @@ class getEmail(object):
                 resp.set_header('Author-By', '@newbiemember')
                 resp.status = falcon.HTTP_200
                 resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+
+            conn.curclose()
+            conn.close()
         except Exception, e:
             return str(e)
 
@@ -111,6 +114,8 @@ class getEmaildashboard(object):
         resp.set_header('Author-By', '@newbiemember')
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(data, default=datetime_handler)
+        conn.curclose()
+        conn.close()
 
 class sendEmailResponse(object):
     def on_post(self, req, resp):
@@ -163,4 +168,5 @@ class sendEmailResponse(object):
             resp.set_header('Author-By', '@newbiemember')
             resp.status = falcon.HTTP_200
             resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+        conn.curclose()
         conn.close()

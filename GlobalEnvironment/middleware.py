@@ -29,6 +29,8 @@ class AuthMiddleware(object):
                                'Please request a new token and try again.')
                 raise falcon.HTTPUnauthorized('Authentication required',
                                               description)
+            conn.curclose()
+            conn.close()
 
         except (jwt.DecodeError, jwt.ExpiredSignatureError):
             description = ('The provided auth token is not valid. '

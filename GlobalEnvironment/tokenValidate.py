@@ -1,7 +1,6 @@
 from GlobalEnvironment.emailFunction import GlobalEmail
 from GlobalEnvironment.db import DB
 from GlobalEnvironment.GlobalFunctions import encryption
-#from datetime import datetime, timedelta
 import falcon
 import jwt
 import json
@@ -47,6 +46,8 @@ class getToken(object):
             data = {"status": "Can't validate Email address!"}
             resp.status = falcon.HTTP_401
             resp.body = json.dumps(data, sort_keys=True, indent=2, separators=(',', ': '))
+        conn.curclose()
+        conn.close()
 
 
 class disableToken(object):
@@ -65,7 +66,8 @@ class disableToken(object):
                 data = {"user": payload['username'], "signout": True}
                 resp.status = falcon.HTTP_200
                 resp.body = json.dumps(data, sort_keys=True, indent=2, separators=(',', ': '))
-
+            conn.curclose()
+            conn.close()
         except (jwt.DecodeError, jwt.ExpiredSignatureError):
             description = ('Your token has expired '
                        'Please request a new token and try again.')
