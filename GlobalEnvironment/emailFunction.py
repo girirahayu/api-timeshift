@@ -61,11 +61,11 @@ class getEmail(object):
                     for mail in em_cc:
                         cc.append(mail[1])
 
-                cekq = "select em_subject from email_receive order by timestamp DESC limit 1"
-                dataq = conn.select(cekq,None)
+                cekq = "select count(em_subject) as count from email_receive where em_subject=%s order by timestamp DESC limit 1"
+                dataq = conn.query("select",cekq,(msg['subject']))
                 dict = dataq[0]
 
-                if dict.get('em_subject') != msg['subject']:
+                if dict.get('count') == 0:
                     query = "insert into email_receive (em_subject,em_from,em_cc,received,em_body) VALUES (%s,%s,%s,%s,%s)"
                     conn.query("insert", query, (msg['subject'],
                                                  email.utils.parseaddr(msg['From'])[1],
