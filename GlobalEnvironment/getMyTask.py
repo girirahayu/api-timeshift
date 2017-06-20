@@ -34,18 +34,39 @@ class getMyTask(object):
                             "email_tasklist on email_receive.id_email = email_tasklist.id_email" \
                             "left OUTER join members on email_tasklist.id_member = members.id_member" \
                             "where username=%s and password=%s and tokenExp=0"
-                    data = {source:conn.query("select",query,(username,password))}
+                if source == "request":
+                    query = "select * from submited_tasklist left OUTER JOIN " \
+                            "members on submited_tasklist.id_member = members.id_member" \
+                            "where username=%s and password=%s and tokenExp=0"
+                if source == "kapacitor":
+                    query = "select * from trouble_tasklist left OUTER JOIN " \
+                            "members on trouble_tasklist.id_member = members.id_member" \
+                            "where username=%s and password=%s and tokenExp=0"
+
+                data = {source:conn.query("select",query,(username,password))}
+                resp.set_header('Author-By', '@newbiemember')
+                resp.status = falcon.HTTP_200
+                resp.body = json.dumps(data, default=datetime_handler)
+
             else:
                 if source == "email":
                     query = "select * from email_receive left OUTER join " \
                             "email_tasklist on email_receive.id_email = email_tasklist.id_email" \
                             "left OUTER join members on email_tasklist.id_member = members.id_member" \
                             "where username=%s and password=%s and tokenExp=0 limit "+lim
-                    data = {source: conn.query("select", query(username,password))}
+                if source == "request":
+                    query = "select * from submited_tasklist left OUTER JOIN " \
+                            "members on submited_tasklist.id_member = members.id_member" \
+                            "where username=%s and password=%s and tokenExp=0 limit "+lim
+                if source == "kapacitor":
+                    query = "select * from trouble_tasklist left OUTER JOIN " \
+                            "members on trouble_tasklist.id_member = members.id_member" \
+                            "where username=%s and password=%s and tokenExp=0 limit "+lim
 
-            resp.set_header('Author-By', '@newbiemember')
-            resp.status = falcon.HTTP_200
-            resp.body = json.dumps(data, default=datetime_handler)
+                data = {source: conn.query("select", query(username,password))}
+                resp.set_header('Author-By', '@newbiemember')
+                resp.status = falcon.HTTP_200
+                resp.body = json.dumps(data, default=datetime_handler)
 
         conn.curclose()
         conn.close()
