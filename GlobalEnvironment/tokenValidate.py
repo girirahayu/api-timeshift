@@ -20,7 +20,7 @@ class getToken(object):
         if getEmail.emailValidation(username, password) == 1:
 
             enco , secre = encryption(password)
-            fil = "select count(username) as count from members where username =%s"
+            fil = "select count(username) as count, tokenExp from members where username=%s group by tokenExp"
             filter = conn.query("select", fil,(username))
             dict = filter[0]
             if dict.get('count') == 0:
@@ -30,7 +30,9 @@ class getToken(object):
                     'username': username,
                     'password': enco
                 }
-            else:
+                jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
+                data = {"token": jwt_token.decode('utf-8')}
+            elif dict.get('count') == 1 and dict.get('tokenExp') == 1:
                 query = "update members set tokenExp=0, username=%s, password=%s, secret=%s where username=%s"
                 conn.query("update", query, (username, enco,secre,username))
                 payload = {
@@ -38,8 +40,12 @@ class getToken(object):
                     'password': enco
                 }
 
-            jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
-            data = {"token": jwt_token.decode('utf-8')}
+                jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
+                data = {"token": jwt_token.decode('utf-8')}
+
+            else:
+                data = {"description":"logout first for new token!!", "token": False}
+
             resp.status = falcon.HTTP_200
             resp.body = json.dumps(data, sort_keys=True, indent=2, separators=(',', ': '))
         else:
