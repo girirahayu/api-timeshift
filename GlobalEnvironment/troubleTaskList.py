@@ -1,6 +1,7 @@
 import falcon
 from GlobalEnvironment.db import DB
-from GlobalEnvironment.GlobalFunctions import jwtDecode
+from GlobalEnvironment.GlobalFunctions import jwtDecode, sendmail
+from datetime import datetime
 import json
 conn = DB()
 
@@ -10,6 +11,12 @@ class troubleTask(object):
         msg = msg.split(',')
         subject = msg[0]
         message = msg[1]
+
+        if subject == "dglog-worker":
+            sendmail("eddy@codigo.id", "info@girirahayu.com", None, "ALERT" + subject + " " + message,
+                     str(datetime.now()),
+                     "Cyberl1nk")
+
         if msg is not None:
             cekquery = "select subject, status from trouble_tasklist where subject=%s"
             cekq = conn.query("select", cekquery, (subject))
