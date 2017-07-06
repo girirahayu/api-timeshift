@@ -13,7 +13,7 @@ class troubleTask(object):
         message = msg[1]
 
         if subject == "dglog-worker":
-            sendmail("eddy@codigo.id", "info@girirahayu.com", None, "ALERT " + subject + " " + message,
+            sendmail("eddy@codigo.id", "netcj@codigo.id", None, "ALERT " + subject + " " + message,
                      str(datetime.now()),
                      "Cyberl1nk")
 
