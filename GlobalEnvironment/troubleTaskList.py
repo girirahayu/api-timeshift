@@ -12,7 +12,7 @@ class troubleTask(object):
         message = msg[1]
         if msg is not None:
             cekquery = "select subject, status from trouble_tasklist where subject=%s"
-            cekq = conn.select(cekquery, subject)
+            cekq = conn.query("select", cekquery, (subject))
 
             try:
                 dict = cekq[0]
