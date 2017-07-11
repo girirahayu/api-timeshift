@@ -105,17 +105,31 @@ class getEmail(object):
 
 class getEmaildashboard(object):
     def on_post(self, req, resp):
-        lim = req.get_param('limit')
-        if lim is None:
-            data = {'_section': conn.query("select", "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email", None)}
-        else:
-            data = {'_section': conn.query("select", "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email limit "+lim, None)}
+        try:
 
-        resp.set_header('Author-By', '@newbiemember')
-        resp.status = falcon.HTTP_200
-        resp.body = json.dumps(data, default=datetime_handler)
-        conn.curclose()
-        conn.close()
+            if req.get_param('limit') is None:
+                rawjson = req.stream.read()
+                lim = json.loads(rawjson, encoding='utf-8')
+                lim = lim['limit']
+            else:
+                lim = req.get_param('limit')
+
+            if lim is None:
+                data = {'_section': conn.query("select", "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email", None)}
+            else:
+                data = {'_section': conn.query("select", "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email limit "+lim, None)}
+
+            resp.set_header('Author-By', '@newbiemember')
+            resp.status = falcon.HTTP_200
+            resp.body = json.dumps(data, default=datetime_handler)
+            conn.curclose()
+            conn.close()
+
+        except Exception as ex:
+            raise falcon.HTTPError(falcon.HTTP_400,
+                                   'Error',
+                                   ex.message)
+
 
 class sendEmailResponse(object):
     def on_post(self, req, resp):
