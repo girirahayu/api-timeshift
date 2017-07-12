@@ -106,18 +106,19 @@ class getEmail(object):
 class getEmaildashboard(object):
     def on_post(self, req, resp):
         try:
-
             if req.get_param('limit') is None:
                 rawjson = req.stream.read()
                 lim = json.loads(rawjson, encoding='utf-8')
                 lim = lim['limit']
+                order = lim['order']
             else:
                 lim = req.get_param('limit')
+                order = req.get_param('order')
 
             if lim is None:
-                data = {'_section': conn.query("select", "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email", None)}
+                data = {'_section': conn.query("select", "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email ORDER by email_receive.id_email" + order, None)}
             else:
-                data = {'_section': conn.query("select", "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email limit "+lim, None)}
+                data = {'_section': conn.query("select", "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email limit "+lim+ " ORDER by email_receive.id_email" + order, None)}
 
             resp.set_header('Author-By', '@newbiemember')
             resp.status = falcon.HTTP_200
@@ -133,54 +134,74 @@ class getEmaildashboard(object):
 
 class sendEmailResponse(object):
     def on_post(self, req, resp):
-        id_email = req.get_param('id_email')
-        body_email= req.get_param('body_email')
-        keynote= req.get_param('keynote')
-        if req.get_param('status') == None:
-            status = 0
-        else:
-            status = int(req.get_param('status'))
+        try:
+            rawjson = req.stream.read()
+            data = json.loads(rawjson,encoding='utf-8')
 
-        getQ = "select * from email_receive where id_email=%s"
-        dataQ= conn.query("select",getQ,id_email)
-        dict = dataQ[0]
+            if req.get_param('id_email') is None:
+                id_email = req.get_param('id_email')
+                body_email= req.get_param('body_email')
+                keynote= req.get_param('keynote')
 
-        if dict.get('em_cc') == str(0):
-            cc = None
-        else:
-            cc = dict.get('em_cc')
-
-        toaddr = dict.get('em_from')
-        token = req.get_header('Authorization')
-        username,password = jwtDecode(token)
-        subject = "Re: "+ dict.get('em_subject')
-
-        #get secret from database for decript password:
-        getq   = "select id_member, secret from members where username=%s"
-        getq   = conn.query("select", getq,username)
-        dict   = getq[0]
-
-        secret = dict.get('secret')
-        depassword = decryption(password,secret)
-        if sendmail(username,toaddr,cc,subject,body_email,depassword) == 200:
-            if status == 0:
-                qin = "insert into email_tasklist (id_member,id_email,response) VALUES (%s,%s,now())"
-                conn.query("insert", qin, (dict.get('id_member'),id_email))
-                callback = {"sendmail": True, "id_member": dict.get('id_member'), "response-by": username, "status": 0, "body_email":body_email }
-                resp.set_header('Author-By', '@newbiemember')
-                resp.status = falcon.HTTP_200
-                resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+                if req.get_param('status') == None:
+                    status = 0
+                else:
+                    status = int(req.get_param('status'))
             else:
-                qup = "update email_tasklist set status=%s, keynote=%s, selesai=now() where id_email=%s and status=0"
-                conn.query("update", qup, (1, keynote, id_email))
-                callback = {"sendmail": True,'id_member': dict.get('id_member'), "finish-by": username, "status": 1, "body_email":body_email, "keynote": keynote}
+                id_email = data['id_email']
+                body_email = data['body_email']
+                keynote = data['keynote']
+
+                if data['status'] == None:
+                    status = 0
+                else:
+                    status = int(data['status'])
+
+            getQ = "select * from email_receive where id_email=%s"
+            dataQ= conn.query("select",getQ,id_email)
+            dict = dataQ[0]
+
+            if dict.get('em_cc') == str(0):
+                cc = None
+            else:
+                cc = dict.get('em_cc')
+
+            toaddr = dict.get('em_from')
+            token = req.get_header('Authorization')
+            username,password = jwtDecode(token)
+            subject = "Re: "+ dict.get('em_subject')
+
+            #get secret from database for decript password:
+            getq   = "select id_member, secret from members where username=%s"
+            getq   = conn.query("select", getq,username)
+            dict   = getq[0]
+
+            secret = dict.get('secret')
+            depassword = decryption(password,secret)
+            if sendmail(username,toaddr,cc,subject,body_email,depassword) == 200:
+                if status == 0:
+                    qin = "insert into email_tasklist (id_member,id_email,response) VALUES (%s,%s,now())"
+                    conn.query("insert", qin, (dict.get('id_member'),id_email))
+                    callback = {"sendmail": True, "id_member": dict.get('id_member'), "response-by": username, "status": 0, "body_email":body_email }
+                    resp.set_header('Author-By', '@newbiemember')
+                    resp.status = falcon.HTTP_200
+                    resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+                else:
+                    qup = "update email_tasklist set status=%s, keynote=%s, selesai=now() where id_email=%s and status=0"
+                    conn.query("update", qup, (1, keynote, id_email))
+                    callback = {"sendmail": True,'id_member': dict.get('id_member'), "finish-by": username, "status": 1, "body_email":body_email, "keynote": keynote}
+                    resp.set_header('Author-By', '@newbiemember')
+                    resp.status = falcon.HTTP_200
+                    resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+            else:
+                callback = {"sendmail": False}
                 resp.set_header('Author-By', '@newbiemember')
                 resp.status = falcon.HTTP_200
                 resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
-        else:
-            callback = {"sendmail": False}
-            resp.set_header('Author-By', '@newbiemember')
-            resp.status = falcon.HTTP_200
-            resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
-        conn.curclose()
-        conn.close()
+            conn.curclose()
+            conn.close()
+
+        except Exception as ex:
+            raise falcon.HTTPError(falcon.HTTP_400,
+                               'Error',
+                               ex.message)

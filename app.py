@@ -5,6 +5,7 @@ from GlobalEnvironment.emailFunction import getEmail, sendEmailResponse, getEmai
 from GlobalEnvironment.middleware import AuthMiddleware
 from GlobalEnvironment.troubleTaskList import troubleTask, updateTroubleTask
 from GlobalEnvironment.submitedTask import submitTask, updateTaskStatus
+from GlobalEnvironment.getMyTask import getMyTask
 import json
 
 class index(object):
@@ -43,6 +44,7 @@ app.add_route('/getToken', getToken())
 app.add_route('/disableToken', disableToken())
 app.add_route('/getEmail', getEmail())
 app.add_route('/getTaskEmailDashboard', getEmaildashboard())
+app.add_route('/getMyTask', getMyTask())
 app.add_route('/sendEmailResponse', sendEmailResponse())
 app.add_route('/troubleTask', troubleTask())
 app.add_route('/updateTroubleTask', updateTroubleTask())

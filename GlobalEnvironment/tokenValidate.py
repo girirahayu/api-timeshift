@@ -14,52 +14,64 @@ conn = DB()
 
 class getToken(object):
     def on_post(self,req, resp):
-        username = req.get_param('username')
-        password = req.get_param('password')
+        try:
+            rawjson = req.stream.read()
+            data = json.loads(rawjson, encoding='utf-8')
 
-        if getEmail.emailValidation(username, password) == 1:
-
-            enco , secre = encryption(password)
-            fil = "select count(username) as count, tokenExp from members where username=%s group by tokenExp"
-            filter = conn.query("select", fil,(username))
-            dict = filter[0]
-            if dict.get('count') == 0:
-                query = "insert into members (username,password,secret) values(%s,%s,%s)"
-                conn.query("insert",query,(username,enco,secre))
-                payload = {
-                    'username': username,
-                    'password': enco
-                }
-                jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
-                data = {"token": jwt_token.decode('utf-8')}
-            elif dict.get('count') == 1 and dict.get('tokenExp') == 1:
-                query = "update members set tokenExp=0, username=%s, password=%s, secret=%s where username=%s"
-                conn.query("update", query, (username, enco,secre,username))
-                payload = {
-                    'username': username,
-                    'password': enco
-                }
-
-                jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
-                data = {"token": jwt_token.decode('utf-8')}
-
+            if req.get_param('username') is None:
+                username = data['username']
+                password = data['password']
             else:
-                data = {"description":"logout first for new token!!", "token": False}
+                username = req.get_param('username')
+                password = req.get_param('password')
 
-            resp.status = falcon.HTTP_200
-            resp.body = json.dumps(data, sort_keys=True, indent=2, separators=(',', ': '))
-        else:
-            data = {"status": "Can't validate Email address!"}
-            resp.status = falcon.HTTP_401
-            resp.body = json.dumps(data, sort_keys=True, indent=2, separators=(',', ': '))
-        conn.curclose()
-        conn.close()
+            if getEmail.emailValidation(username, password) == 1:
+
+                enco , secre = encryption(password)
+                fil = "select count(username) as count, tokenExp from members where username=%s group by tokenExp"
+                filter = conn.query("select", fil,(username))
+                dict = filter[0]
+                if dict.get('count') == 0:
+                    query = "insert into members (username,password,secret) values(%s,%s,%s)"
+                    conn.query("insert",query,(username,enco,secre))
+                    payload = {
+                        'username': username,
+                        'password': enco
+                    }
+                    jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
+                    data = {"token": jwt_token.decode('utf-8')}
+                elif dict.get('count') == 1 and dict.get('tokenExp') == 1:
+                    query = "update members set tokenExp=0, username=%s, password=%s, secret=%s where username=%s"
+                    conn.query("update", query, (username, enco,secre,username))
+                    payload = {
+                        'username': username,
+                        'password': enco
+                    }
+
+                    jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
+                    data = {"token": jwt_token.decode('utf-8')}
+
+                else:
+                    data = {"description":"logout first for new token!!", "token": False}
+
+                resp.status = falcon.HTTP_200
+                resp.body = json.dumps(data, sort_keys=True, indent=2, separators=(',', ': '))
+            else:
+                data = {"status": "Can't validate Email address!"}
+                resp.status = falcon.HTTP_401
+                resp.body = json.dumps(data, sort_keys=True, indent=2, separators=(',', ': '))
+            conn.curclose()
+            conn.close()
+
+        except Exception as ex:
+            raise falcon.HTTPError(falcon.HTTP_400,
+                                   'Error',
+                                   ex.message)
 
 
 class disableToken(object):
     def on_get(self, req, resp):
         token = req.get_header('Authorization')
-        
         try:
             payload = jwt.decode(token, JWT_SECRET,algorithms = [JWT_ALGORITHM])
             query = "select count(id_member) as count from members where tokenExp=0 and username=%s and password=%s"
