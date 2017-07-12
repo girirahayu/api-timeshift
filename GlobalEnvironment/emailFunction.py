@@ -108,17 +108,17 @@ class getEmaildashboard(object):
         try:
             if req.get_param('limit') is None:
                 rawjson = req.stream.read()
-                lim = json.loads(rawjson, encoding='utf-8')
-                lim = lim['limit']
-                order = lim['order']
+                d = json.loads(rawjson, encoding='utf-8')
+                lim = d['limit']
+                order = d['order']
             else:
                 lim = req.get_param('limit')
                 order = req.get_param('order')
 
             if lim is None:
-                data = {'_section': conn.query("select", "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email ORDER by email_receive.id_email" + order, None)}
+                data = {'_section': conn.query("select", "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email ORDER by email_receive.id_email " + order, None)}
             else:
-                data = {'_section': conn.query("select", "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email limit "+lim+ " ORDER by email_receive.id_email" + order, None)}
+                data = {'_section': conn.query("select", "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email ORDER by email_receive.id_email " + order + " limit " +lim, None)}
 
             resp.set_header('Author-By', '@newbiemember')
             resp.status = falcon.HTTP_200
