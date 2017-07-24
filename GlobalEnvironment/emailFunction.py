@@ -133,16 +133,17 @@ class getEmaildashboard(object):
 class getTaskEmailID(object):
     def on_post(self, req, resp):
         try:
-            rawjson = req.stream.read()
-            data = json.loads(rawjson,encoding='utf-8')
-
             if req.get_param('id_email') is None:
+                rawjson = req.stream.read()
+                data = json.loads(rawjson, encoding='utf-8')
                 id_email = data['id_email']
             else:
                 id_email = req.get_param('id_email')
 
+            print id_email
+
             data = {'_section': conn.query("select",
-                                           "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email and email_receive.id_email=" + id_email,None)}
+                                           "select * from email_receive where id_email=" + id_email,None)}
 
             resp.set_header('Author-By', '@newbiemember')
             resp.status = falcon.HTTP_200
@@ -156,19 +157,11 @@ class getTaskEmailID(object):
 class sendEmailResponse(object):
     def on_post(self, req, resp):
         try:
-            rawjson = req.stream.read()
-            data = json.loads(rawjson,encoding='utf-8')
-
             if req.get_param('id_email') is None:
-                id_email = req.get_param('id_email')
-                body_email= req.get_param('body_email')
-                keynote= req.get_param('keynote')
 
-                if req.get_param('status') == None:
-                    status = 0
-                else:
-                    status = int(req.get_param('status'))
-            else:
+                rawjson = req.stream.read()
+                data = json.loads(rawjson, encoding='utf-8')
+
                 id_email = data['id_email']
                 body_email = data['body_email']
                 keynote = data['keynote']
@@ -177,6 +170,16 @@ class sendEmailResponse(object):
                     status = 0
                 else:
                     status = int(data['status'])
+
+            else:
+                id_email = req.get_param('id_email')
+                body_email= req.get_param('body_email')
+                keynote= req.get_param('keynote')
+
+                if req.get_param('status') == None:
+                    status = 0
+                else:
+                    status = int(req.get_param('status'))
 
             getQ = "select * from email_receive where id_email=%s"
             dataQ= conn.query("select",getQ,id_email)
