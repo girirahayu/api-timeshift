@@ -71,14 +71,14 @@ class getEmail(object):
                                                  email.utils.parseaddr(msg['From'])[1],
                                                  str(cc),
                                                  msg['date'],
-                                                 body.replace('\r', '').replace('\n', '')))
+                                                 body))
 
                     callback = {"_dataemail": {
                         "subject": msg['subject'],
                         "from": email.utils.parseaddr(msg['From'])[1],
                         "cc": cc,
                         "received": msg['date'],
-                        "body": body.replace('\r', '').replace('\n', '')
+                        "body": body
                     }
                     }
 
