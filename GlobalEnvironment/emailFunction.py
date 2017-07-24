@@ -164,22 +164,23 @@ class sendEmailResponse(object):
 
                 id_email = data['id_email']
                 body_email = data['body_email']
-                keynote = data['keynote']
+
 
                 if data['status'] == None:
                     status = 0
                 else:
                     status = int(data['status'])
+                    keynote = data['keynote']
 
             else:
                 id_email = req.get_param('id_email')
                 body_email= req.get_param('body_email')
-                keynote= req.get_param('keynote')
 
                 if req.get_param('status') == None:
                     status = 0
                 else:
                     status = int(req.get_param('status'))
+                    keynote = req.get_param('keynote')
 
             getQ = "select * from email_receive where id_email=%s"
             dataQ= conn.query("select",getQ,id_email)
