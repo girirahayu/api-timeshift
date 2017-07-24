@@ -165,8 +165,7 @@ class sendEmailResponse(object):
                 id_email = data['id_email']
                 body_email = data['body_email']
 
-
-                if data['status'] == None:
+                if data['status'] == 0:
                     status = 0
                 else:
                     status = int(data['status'])
