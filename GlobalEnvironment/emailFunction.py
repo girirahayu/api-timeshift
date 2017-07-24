@@ -61,8 +61,8 @@ class getEmail(object):
                     for mail in em_cc:
                         cc.append(mail[1])
 
-                cekq = "select count(em_subject) as count from email_receive where em_subject=%s order by timestamp DESC limit 1"
-                dataq = conn.query("select",cekq,(msg['subject']))
+                cekq = "select count(em_subject) as count from email_receive where em_subject=%s and received=%s order by timestamp DESC limit 1"
+                dataq = conn.query("select",cekq,(msg['subject'],msg['date']))
                 dict = dataq[0]
 
                 if dict.get('count') == 0:
@@ -123,8 +123,7 @@ class getEmaildashboard(object):
             resp.set_header('Author-By', '@newbiemember')
             resp.status = falcon.HTTP_200
             resp.body = json.dumps(data, default=datetime_handler)
-            conn.curclose()
-            conn.close()
+
 
         except Exception as ex:
             raise falcon.HTTPError(falcon.HTTP_400,
