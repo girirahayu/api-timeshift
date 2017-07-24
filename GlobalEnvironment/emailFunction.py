@@ -130,6 +130,28 @@ class getEmaildashboard(object):
                                    'Error',
                                    ex.message)
 
+class getTaskEmailID(object):
+    def on_post(self, req, resp):
+        try:
+            rawjson = req.stream.read()
+            data = json.loads(rawjson,encoding='utf-8')
+
+            if req.get_param('id_email') is None:
+                id_email = data['id_email']
+            else:
+                id_email = req.get_param('id_email')
+
+            data = {'_section': conn.query("select",
+                                           "select * from email_receive left OUTER join email_tasklist on email_receive.id_email = email_tasklist.id_email and email_receive.id_email=" + id_email,None)}
+
+            resp.set_header('Author-By', '@newbiemember')
+            resp.status = falcon.HTTP_200
+            resp.body = json.dumps(data, default=datetime_handler)
+
+        except Exception as ex:
+            raise falcon.HTTPError(falcon.HTTP_400,
+                               'Error',
+                               ex.message)
 
 class sendEmailResponse(object):
     def on_post(self, req, resp):
