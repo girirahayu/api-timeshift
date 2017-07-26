@@ -4,7 +4,7 @@ import falcon
 import json
 from GlobalEnvironment.db import DB
 import datetime
-from GlobalEnvironment.GlobalFunctions import decryption, jwtDecode, sendmail
+from GlobalEnvironment.GlobalFunctions import decryption, jwtDecode, sendmail, sendTelegram
 conn = DB()
 
 
@@ -81,6 +81,8 @@ class getEmail(object):
                         "body": body
                     }
                     }
+
+                    print sendTelegram(msg['subject'])
 
                     resp.set_header('Author-By', '@newbiemember')
                     resp.status = falcon.HTTP_200

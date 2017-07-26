@@ -2,6 +2,8 @@ import uuid
 import base64
 from Crypto.Cipher import AES
 import jwt
+import urllib2
+import json
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -77,3 +79,15 @@ def decryption(encryptedString,secret):
 def jwtDecode(token):
     payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
     return payload['username'], payload['password']
+
+def sendTelegram(message):
+    token = '211902458:AAGihnHsNG-slhhzEX_cTMNw45ZecGmRif0'
+    chatid = '-171840403'
+    msg = 'Hai Sayang, ada pesan baru nih!! ' + message
+
+    req = urllib2.Request("https://api.telegram.org/bot" + token + "/sendMessage?chat_id=" + chatid + "&text=" + msg)
+    opener = urllib2.build_opener()
+    f = opener.open(req)
+    js = json.loads(f.read())
+    result = json.dumps(dict(js), ensure_ascii=False)
+    return result
