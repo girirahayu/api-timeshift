@@ -87,7 +87,7 @@ def jwtDecode(token):
 def sendTelegram(message):
     token = '211902458:AAGihnHsNG-slhhzEX_cTMNw45ZecGmRif0'
     chatid = '-171840403'
-    msg = 'Hai Sayang, ada pesan baru nih!! ' + message
+    msg = 'Hai Sayang!!! ' + message
 
     req = urllib2.Request("https://api.telegram.org/bot" + token + "/sendMessage?chat_id=" + chatid + "&text=" + msg)
     opener = urllib2.build_opener()
