@@ -30,8 +30,8 @@ class getToken(object):
                 enco , secre = encryption(password)
                 fil = "select count(username) as count, tokenExp from members where username=%s group by tokenExp"
                 filter = conn.query("select", fil,(username))
-                dict = filter[0]
-                if dict.get('count') == 0:
+
+                if len(filter) == 0:
                     query = "insert into members (username,password,secret) values(%s,%s,%s)"
                     conn.query("insert",query,(username,enco,secre))
                     payload = {
@@ -40,14 +40,13 @@ class getToken(object):
                     }
                     jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
                     data = {"token": jwt_token.decode('utf-8')}
-                elif dict.get('count') == 1 and dict.get('tokenExp') == 1:
+                elif len(filter) > 0:
                     query = "update members set tokenExp=0, username=%s, password=%s, secret=%s where username=%s"
                     conn.query("update", query, (username, enco,secre,username))
                     payload = {
                         'username': username,
                         'password': enco
                     }
-
                     jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
                     data = {"token": jwt_token.decode('utf-8')}
 
