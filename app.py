@@ -1,7 +1,7 @@
 import falcon
 from falcon_multipart.middleware import MultipartMiddleware
 from GlobalEnvironment.tokenValidate import getToken, disableToken
-from GlobalEnvironment.emailFunction import getEmail, sendEmailResponse, getEmaildashboard, getTaskEmailID
+from GlobalEnvironment.emailFunction import getEmail, sendEmailResponse, getEmaildashboard, getTaskEmailID, myDashboardList
 from GlobalEnvironment.middleware import AuthMiddleware
 from GlobalEnvironment.troubleTaskList import troubleTask, updateTroubleTask
 from GlobalEnvironment.submitedTask import submitTask, updateTaskStatus
@@ -51,3 +51,4 @@ app.add_route('/troubleTask', troubleTask())
 app.add_route('/updateTroubleTask', updateTroubleTask())
 app.add_route('/submitTask', submitTask())
 app.add_route('/updateTask', updateTaskStatus())
+app.add_route('/myDashboard', myDashboardList())
