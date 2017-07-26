@@ -4,7 +4,7 @@ import falcon
 import json
 from GlobalEnvironment.db import DB
 import datetime
-from GlobalEnvironment.GlobalFunctions import decryption, jwtDecode, sendmail, sendTelegram
+from GlobalEnvironment.GlobalFunctions import decryption, jwtDecode, sendmail, sendTelegram, sendToRabbit
 import jwt
 JWT_SECRET = 'infra@codigo'
 JWT_ALGORITHM = 'HS256'
@@ -86,7 +86,8 @@ class getEmail(object):
                     }
                     }
 
-                    print sendTelegram(msg['subject'])
+                    sendTelegram(msg['subject'])
+                    sendToRabbit(msg['subject'])
 
                     resp.set_header('Author-By', '@newbiemember')
                     resp.status = falcon.HTTP_200
@@ -145,8 +146,6 @@ class getTaskEmailID(object):
                 id_email = data['id_email']
             else:
                 id_email = req.get_param('id_email')
-
-            print id_email
 
             data = {'_section': conn.query("select",
                                            "select * from email_receive where id_email=" + id_email,None)}

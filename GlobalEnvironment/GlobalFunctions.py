@@ -95,3 +95,11 @@ def sendTelegram(message):
     js = json.loads(f.read())
     result = json.dumps(dict(js), ensure_ascii=False)
     return result
+
+def sendToRabbit(message):
+    data = {"properties":{},"routing_key":"","payload":message,"payload_encoding":"string"}
+    req = urllib2.Request('http://rabbit.codigo.id/api/exchanges/infra/monitoring/publish')
+    req.add_header("Authorization", "Basic XXXXXXXXXXX")
+    req.add_header('Content-Type', 'application/json')
+    response = urllib2.urlopen(req, json.dumps(data))
+    return response
