@@ -29,7 +29,7 @@ def sendmail(efrom,to,cc,subject,body,password):
     msg['Cc'] = cece
     msg['Subject'] = subject
     toaddrs = [toaddr]+cece.split(',')
-    msg.attach(MIMEText(body, 'plain'))
+    msg.attach(MIMEText(body, 'html'))
     try :
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.ehlo()
