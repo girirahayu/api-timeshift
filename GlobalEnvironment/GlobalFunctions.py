@@ -14,17 +14,21 @@ JWT_EXP_DELTA_SECONDS = 20
 
 def sendmail(efrom,to,cc,subject,body,password):
     if cc is None:
-        cc = 'infra@codigo.id'
+        cece = 'infra@codigo.id'
     else:
         cc = cc.replace('[','').replace(']','').replace("'", "")
-        cc = cc + ',infra@codigo.id'
+        if "infra@codigo.id" in cc:
+            cece = cc
+        else:
+            cece = cc + ',infra@codigo.id'
+
     toaddr = ', '.join([to])
     msg = MIMEMultipart()
     msg['From'] = efrom
     msg['To'] = toaddr
-    msg['Cc'] = cc
+    msg['Cc'] = cece
     msg['Subject'] = subject
-    toaddrs = [toaddr]+cc.split(',')
+    toaddrs = [toaddr]+cece.split(',')
     msg.attach(MIMEText(body, 'plain'))
     try :
         server = smtplib.SMTP('smtp.gmail.com', 587)
