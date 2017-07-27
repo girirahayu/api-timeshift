@@ -5,6 +5,18 @@ import json
 
 conn = DB()
 
+class getMembers(object):
+    def on_get(self, req, resp):
+        data = {'_member': conn.query("select",
+                                       "select id_member,tokenExp,username from members",
+                                       None)}
+
+        resp.set_header('Author-By', '@newbiemember')
+        resp.status = falcon.HTTP_200
+        resp.body = json.dumps(data, sort_keys=True, indent=2, separators=(',', ': '))
+        conn.curclose()
+        conn.close()
+
 class submitTask(object):
     def on_post(self,req, resp):
         try:

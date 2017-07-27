@@ -4,7 +4,7 @@ from GlobalEnvironment.tokenValidate import getToken, disableToken
 from GlobalEnvironment.emailFunction import getEmail, sendEmailResponse, getEmaildashboard, getTaskEmailID
 from GlobalEnvironment.middleware import AuthMiddleware
 from GlobalEnvironment.troubleTaskList import troubleTask, updateTroubleTask
-from GlobalEnvironment.submitedTask import submitTask, updateTaskStatus
+from GlobalEnvironment.submitedTask import submitTask, updateTaskStatus, getMembers
 from GlobalEnvironment.getMyTask import myDashboardList
 import json
 
@@ -51,3 +51,4 @@ app.add_route('/updateTroubleTask', updateTroubleTask())
 app.add_route('/submitTask', submitTask())
 app.add_route('/updateTask', updateTaskStatus())
 app.add_route('/myDashboard', myDashboardList())
+app.add_route('/getMembers', getMembers())

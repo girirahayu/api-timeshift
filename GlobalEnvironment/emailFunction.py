@@ -206,21 +206,22 @@ class sendEmailResponse(object):
 
             secret = dict.get('secret')
             depassword = decryption(password,secret)
-            if sendmail(username,toaddr,cc,subject,body_email,depassword) == 200:
-                if status == 0:
-                    qin = "insert into email_tasklist (id_member,id_email,response) VALUES (%s,%s,now())"
-                    conn.query("insert", qin, (dict.get('id_member'),id_email))
-                    callback = {"sendmail": True, "id_member": dict.get('id_member'), "response-by": username, "status": 0, "body_email":body_email }
-                    resp.set_header('Author-By', '@newbiemember')
-                    resp.status = falcon.HTTP_200
-                    resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
-                else:
-                    qup = "update email_tasklist set status=%s, keynote=%s, selesai=now() where id_email=%s and status=0"
-                    conn.query("update", qup, (1, keynote, id_email))
-                    callback = {"sendmail": True,'id_member': dict.get('id_member'), "finish-by": username, "status": 1, "body_email":body_email, "keynote": keynote}
-                    resp.set_header('Author-By', '@newbiemember')
-                    resp.status = falcon.HTTP_200
-                    resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+            if status == 0:
+                sendmail(username, toaddr, cc, subject, body_email, depassword)
+                qin = "insert into email_tasklist (id_member,id_email,response) VALUES (%s,%s,now())"
+                conn.query("insert", qin, (dict.get('id_member'),id_email))
+                callback = {"sendmail": True, "id_member": dict.get('id_member'), "response-by": username, "status": 0, "body_email":body_email }
+                resp.set_header('Author-By', '@newbiemember')
+                resp.status = falcon.HTTP_200
+                resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+            elif status == 1:
+                sendmail(username, toaddr, cc, subject, body_email, depassword)
+                qup = "update email_tasklist set status=%s, keynote=%s, selesai=now() where id_email=%s and status=0"
+                conn.query("update", qup, (1, keynote, id_email))
+                callback = {"sendmail": True,'id_member': dict.get('id_member'), "finish-by": username, "status": 1, "body_email":body_email, "keynote": keynote}
+                resp.set_header('Author-By', '@newbiemember')
+                resp.status = falcon.HTTP_200
+                resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
             else:
                 callback = {"sendmail": False}
                 resp.set_header('Author-By', '@newbiemember')
