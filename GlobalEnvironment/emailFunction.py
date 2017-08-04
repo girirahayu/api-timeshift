@@ -168,6 +168,7 @@ class sendEmailResponse(object):
 
                 id_email = data['id_email']
                 body_email = data['body_email']
+                SendE = int(data['sendemail'])
 
                 if data['status'] == 0:
                     status = 0
@@ -178,6 +179,7 @@ class sendEmailResponse(object):
             else:
                 id_email = req.get_param('id_email')
                 body_email= req.get_param('body_email')
+                SendE = int(req.get_param('sendemail'))
 
                 if req.get_param('status') == None:
                     status = 0
@@ -206,8 +208,11 @@ class sendEmailResponse(object):
 
             secret = dict.get('secret')
             depassword = decryption(password,secret)
+
             if status == 0:
-                sendmail(username, toaddr, cc, subject, body_email, depassword)
+                if SendE == 1:
+                    sendmail(username, toaddr, cc, subject, body_email, depassword)
+
                 qin = "insert into email_tasklist (id_member,id_email,response) VALUES (%s,%s,now())"
                 conn.query("insert", qin, (dict.get('id_member'),id_email))
                 callback = {"sendmail": True, "id_member": dict.get('id_member'), "response-by": username, "status": 0, "body_email":body_email }
@@ -215,7 +220,9 @@ class sendEmailResponse(object):
                 resp.status = falcon.HTTP_200
                 resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
             elif status == 1:
-                sendmail(username, toaddr, cc, subject, body_email, depassword)
+                if SendE == 1:
+                    sendmail(username, toaddr, cc, subject, body_email, depassword)
+
                 qup = "update email_tasklist set status=%s, keynote=%s, selesai=now() where id_email=%s and status=0"
                 conn.query("update", qup, (1, keynote, id_email))
                 callback = {"sendmail": True,'id_member': dict.get('id_member'), "finish-by": username, "status": 1, "body_email":body_email, "keynote": keynote}
@@ -227,6 +234,7 @@ class sendEmailResponse(object):
                 resp.set_header('Author-By', '@newbiemember')
                 resp.status = falcon.HTTP_200
                 resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+
             conn.curclose()
             conn.close()
 
