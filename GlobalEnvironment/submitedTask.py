@@ -2,6 +2,11 @@ import falcon
 from GlobalEnvironment.db import DB
 from GlobalEnvironment.GlobalFunctions import jwtDecode
 import json
+import jwt
+
+JWT_SECRET = 'infra@codigo'
+JWT_ALGORITHM = 'HS256'
+JWT_EXP_DELTA_SECONDS = 20
 
 conn = DB()
 
@@ -19,26 +24,28 @@ class getMembers(object):
 
 class submitTask(object):
     def on_post(self,req, resp):
+
         try:
+            token = req.get_header('Authorization')
             rawjson = req.stream.read()
             data = json.loads(rawjson, encoding='utf-8')
+            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
 
-            if req.get_param('nametask') is None:
-                nametask = data['nametask']
-                desctask = data['desctask']
-                username = data['to']
-            else:
-                nametask = req.get_param('nametask')
-                desctask = req.get_param('desctask')
-                username = req.get_param('to')
+            query = "select id_member from members where username=%s and password=%s"
+            cek = conn.query("select", query, (payload['username'], payload['password']))
+            dict = cek[0]
 
-            if nametask or desctask or username is not None:
-                query = "insert into submited_tasklist(judul_task, desc_task, username) VALUES (%s,%s,%s)"
-                conn.query("insert", query, (nametask,desctask,username))
-                callback = {"task": "submited", "to": username, "nametask": nametask, "status":"delivered"}
-                resp.set_header('Author-By', '@newbiemember')
-                resp.status = falcon.HTTP_200
-                resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
+            nametask = data['nametask']
+            desctask = data['desctask']
+            note    = data['note']
+            id      = dict.get('id_member')
+
+            query = "insert into submited_tasklist(judul_task, desc_task, date_received,id_member,note) VALUES (%s,%s,now(),%s,%s)"
+            conn.query("insert", query, (nametask,desctask,id,note))
+            callback = {"task": "submited", "nametask": nametask, "status":"saved"}
+            resp.set_header('Author-By', '@newbiemember')
+            resp.status = falcon.HTTP_200
+            resp.body = json.dumps(callback, sort_keys=True, indent=2, separators=(',', ': '))
 
             conn.curclose()
             conn.close()
