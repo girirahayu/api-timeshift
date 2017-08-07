@@ -122,9 +122,9 @@ class getEmaildashboard(object):
                 order = req.get_param('order')
 
             if lim is None:
-                data = {'_section': conn.query("select", "select er.*, et.*, m.username from email_receive er left outer join email_tasklist et on er.id_email=et.id_email left outer join members m on et.id_member=m.id_member order by er.id_email" + order, None)}
+                data = {'_section': conn.query("select", "select er.*, et.*, m.username from email_receive er left outer join email_tasklist et on er.id_email=et.id_email left outer join members m on et.id_member=m.id_member order by er.id_email " + order, None)}
             else:
-                data = {'_section': conn.query("select", "select er.*, et.*, m.username from email_receive er left outer join email_tasklist et on er.id_email=et.id_email left outer join members m on et.id_member=m.id_member order by er.id_email" + order + " limit " +lim, None)}
+                data = {'_section': conn.query("select", "select er.*, et.*, m.username from email_receive er left outer join email_tasklist et on er.id_email=et.id_email left outer join members m on et.id_member=m.id_member order by er.id_email " + order + " limit " +lim, None)}
 
             resp.set_header('Author-By', '@newbiemember')
             resp.status = falcon.HTTP_200
