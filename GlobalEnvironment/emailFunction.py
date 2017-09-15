@@ -48,15 +48,15 @@ class getEmail(object):
             msg = email.message_from_string(raw_email)
 
             decode = email.header.decode_header(msg['Subject'])[0]
-            subject = unicode(decode[0])[:5]
+            
+            subject = unicode(decode[0])#[:5]
             if msg.is_multipart():
                 for payload in msg.get_payload():
                     body = payload.get_payload()
             else:
                 body = msg.get_payload()
-
-            #if subject == '[REQ]' or subject == '[Req]' or subject == '[req]':
-            if '[REQ]' in subject or '[req]' in subject:
+            
+            if "[REQ]" in subject or "[req]" in subject or "[Req]" in subject:
                 if msg['cc'] is None:
                     cc = 0
                 else:
