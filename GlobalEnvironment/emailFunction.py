@@ -57,7 +57,7 @@ class getEmail(object):
             else:
                 body = msg.get_payload()
             
-            if "[REQ]" in subject or "[req]" in subject or "[Req]" in subject or "[REQ]" in subjectFwd or "[Req]" in subjectFwd or "[req]" in subjectFwd:
+            if "[REQ]" in subject or "[req]" in subject or "[Req]" in subject or "Fwd: [REQ]" in subjectFwd or "Fwd: [Req]" in subjectFwd or "Fwd: [req]" in subjectFwd:
                 if msg['cc'] is None:
                     cc = 0
                 else:
